@@ -184,8 +184,8 @@ public abstract class RegionLookupFactoryBean<K, V> extends AbstractFactoryBeanS
 	 * @see org.apache.geode.cache.Region#getName()
 	 */
 	public String resolveRegionName() {
-		return (StringUtils.hasText(this.regionName) ? this.regionName
-			: (StringUtils.hasText(this.name) ? this.name : getBeanName()));
+		return StringUtils.hasText(this.regionName) ? this.regionName
+			: (StringUtils.hasText(this.name) ? this.name : getBeanName());
 	}
 
 	/**

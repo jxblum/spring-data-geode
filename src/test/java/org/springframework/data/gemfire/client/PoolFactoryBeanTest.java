@@ -287,7 +287,7 @@ public class PoolFactoryBeanTest {
 		assertThat(poolFactoryBean.getLocators().size(), is(equalTo(1)));
 		assertThat(poolFactoryBean.getLocators().findOne("localhost"), is(equalTo(localhost)));
 
-		poolFactoryBean.setLocators(Collections.<ConnectionEndpoint>emptyList());
+		poolFactoryBean.setLocators(Collections.emptyList());
 
 		assertThat(poolFactoryBean.getLocators(), is(notNullValue()));
 		assertThat(poolFactoryBean.getLocators().isEmpty(), is(true));
@@ -323,7 +323,7 @@ public class PoolFactoryBeanTest {
 		assertThat(poolFactoryBean.getServers().size(), is(equalTo(1)));
 		assertThat(poolFactoryBean.getServers().findOne("localhost"), is(equalTo(localhost)));
 
-		poolFactoryBean.setServers(Collections.<ConnectionEndpoint>emptyList());
+		poolFactoryBean.setServers(Collections.emptyList());
 
 		assertThat(poolFactoryBean.getServers(), is(notNullValue()));
 		assertThat(poolFactoryBean.getServers().isEmpty(), is(true));
@@ -366,6 +366,7 @@ public class PoolFactoryBeanTest {
 		poolFactoryBean.setSubscriptionEnabled(true);
 		poolFactoryBean.setSubscriptionMessageTrackingTimeout(20000);
 		poolFactoryBean.setSubscriptionRedundancy(2);
+		poolFactoryBean.setSubscriptionTimeoutMultiplier(4);
 		poolFactoryBean.setThreadLocalConnections(false);
 
 		Pool pool = poolFactoryBean.getPool();
@@ -393,6 +394,7 @@ public class PoolFactoryBeanTest {
 		assertThat(pool.getSubscriptionEnabled(), is(equalTo(true)));
 		assertThat(pool.getSubscriptionMessageTrackingTimeout(), is(equalTo(20000)));
 		assertThat(pool.getSubscriptionRedundancy(), is(equalTo(2)));
+		assertThat(pool.getSubscriptionTimeoutMultiplier(), is(equalTo(4)));
 		assertThat(pool.getThreadLocalConnections(), is(equalTo(false)));
 	}
 

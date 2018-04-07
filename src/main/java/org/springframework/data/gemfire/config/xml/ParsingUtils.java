@@ -333,7 +333,7 @@ abstract class ParsingUtils {
 
 	@SuppressWarnings("unused")
 	static void parseOptionalRegionAttributes(Element element, ParserContext parserContext,
-		BeanDefinitionBuilder regionAttributesBuilder) {
+			BeanDefinitionBuilder regionAttributesBuilder) {
 
 		setPropertyValue(element, regionAttributesBuilder, "cloning-enabled");
 		setPropertyValue(element, regionAttributesBuilder, "concurrency-level");

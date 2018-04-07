@@ -65,19 +65,19 @@ public class AbstractFunctionExecutionTest {
 
 	@Mock
 	private Execution mockExecution;
-
-	// TODO add more tests!!!
-
 	@Test
 	@SuppressWarnings("unchecked")
 	public void executeWithResults() throws Exception {
+
 		Object[] args = { "one", "two", "three" };
+
 		List<Object> results = Arrays.asList(args);
 
 		Function mockFunction = mock(Function.class, "MockFunction");
+
 		ResultCollector mockResultCollector = mock(ResultCollector.class, "MockResultCollector");
 
-		when(mockExecution.withArgs(eq(args))).thenReturn(mockExecution);
+		when(mockExecution.setArguments(eq(args))).thenReturn(mockExecution);
 		when(mockExecution.execute(eq(mockFunction))).thenReturn(mockResultCollector);
 		when(mockFunction.hasResult()).thenReturn(true);
 		when(mockResultCollector.getResult(500, TimeUnit.MILLISECONDS)).thenReturn(results);
@@ -94,7 +94,7 @@ public class AbstractFunctionExecutionTest {
 		assertThat(actualResults).isNotNull();
 		assertThat(actualResults).isEqualTo((Iterable<Object>) results);
 
-		verify(mockExecution, times(1)).withArgs(eq(args));
+		verify(mockExecution, times(1)).setArguments(eq(args));
 		verify(mockExecution, never()).withCollector(any(ResultCollector.class));
 		verify(mockExecution, never()).withFilter(any(Set.class));
 		verify(mockExecution, times(1)).execute(eq(mockFunction));
@@ -105,10 +105,13 @@ public class AbstractFunctionExecutionTest {
 
 	@Test
 	public void executeAndExtractWithSingleResult() {
-		final List<String> results = Collections.singletonList("test");
+
+		List<String> results = Collections.singletonList("test");
 
 		AbstractFunctionExecution functionExecution = new AbstractFunctionExecution() {
-			@Override protected Execution getExecution() {
+
+			@Override
+			protected Execution getExecution() {
 				return mockExecution;
 			}
 
@@ -123,10 +126,13 @@ public class AbstractFunctionExecutionTest {
 
 	@Test
 	public void executeAndExtractWithMultipleResults() {
-		final List<String> results = Arrays.asList("one", "two", "three");
+
+		List<String> results = Arrays.asList("one", "two", "three");
 
 		AbstractFunctionExecution functionExecution = new AbstractFunctionExecution() {
-			@Override protected Execution getExecution() {
+
+			@Override
+			protected Execution getExecution() {
 				return mockExecution;
 			}
 
@@ -141,8 +147,11 @@ public class AbstractFunctionExecutionTest {
 
 	@Test
 	public void executeAndExtractWithNullResults() {
+
 		AbstractFunctionExecution functionExecution = new AbstractFunctionExecution() {
-			@Override protected Execution getExecution() {
+
+			@Override
+			protected Execution getExecution() {
 				return mockExecution;
 			}
 
@@ -157,8 +166,11 @@ public class AbstractFunctionExecutionTest {
 
 	@Test
 	public void executeAndExtractWithNoResults() {
+
 		AbstractFunctionExecution functionExecution = new AbstractFunctionExecution() {
-			@Override protected Execution getExecution() {
+
+			@Override
+			protected Execution getExecution() {
 				return mockExecution;
 			}
 
@@ -173,8 +185,11 @@ public class AbstractFunctionExecutionTest {
 
 	@Test
 	public void executeAndExtractWithThrowsException() {
+
 		AbstractFunctionExecution functionExecution = new AbstractFunctionExecution() {
-			@Override protected Execution getExecution() {
+
+			@Override
+			protected Execution getExecution() {
 				return mockExecution;
 			}
 

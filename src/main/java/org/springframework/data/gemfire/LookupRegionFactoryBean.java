@@ -16,18 +16,20 @@
 
 package org.springframework.data.gemfire;
 
-import org.apache.geode.cache.AttributesMutator;
+import static org.springframework.data.gemfire.util.ArrayUtils.nullSafeArray;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 import org.apache.geode.cache.CacheListener;
 import org.apache.geode.cache.CacheLoader;
 import org.apache.geode.cache.CacheWriter;
 import org.apache.geode.cache.CustomExpiry;
-import org.apache.geode.cache.EvictionAttributesMutator;
 import org.apache.geode.cache.ExpirationAttributes;
 import org.apache.geode.cache.Region;
 import org.apache.geode.cache.asyncqueue.AsyncEventQueue;
 import org.apache.geode.cache.wan.GatewaySender;
 import org.springframework.util.Assert;
-import org.springframework.util.ObjectUtils;
 
 /**
  * The LookupRegionFactoryBean class is a concrete implementation of RegionLookupFactoryBean for handling
@@ -66,72 +68,39 @@ public class LookupRegionFactoryBean<K, V> extends RegionLookupFactoryBean<K, V>
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+
 		super.afterPropertiesSet();
 
-		AttributesMutator<K, V> attributesMutator = getRegion().getAttributesMutator();
+		Optional.ofNullable(getRegion().getAttributesMutator()).ifPresent(attributesMutator -> {
 
-		if (!ObjectUtils.isEmpty(asyncEventQueues)) {
-			for (AsyncEventQueue asyncEventQueue : asyncEventQueues) {
-				attributesMutator.addAsyncEventQueueId(asyncEventQueue.getId());
-			}
-		}
+			AsyncEventQueue[] asyncEventQueues = nullSafeArray(this.asyncEventQueues, AsyncEventQueue.class);
 
-		if (!ObjectUtils.isEmpty(cacheListeners)) {
-			for (CacheListener<K, V> cacheListener : cacheListeners) {
-				attributesMutator.addCacheListener(cacheListener);
-			}
-		}
+			Arrays.stream(asyncEventQueues).forEach(it -> attributesMutator.addAsyncEventQueueId(it.getId()));
 
-		if (cacheLoader != null) {
-			attributesMutator.setCacheLoader(cacheLoader);
-		}
+			CacheListener[] cacheListeners = nullSafeArray(this.cacheListeners, CacheListener.class);
 
-		if (cacheWriter != null) {
-			attributesMutator.setCacheWriter(cacheWriter);
-		}
+			Arrays.stream(cacheListeners).forEach(attributesMutator::addCacheListener);
 
-		if (cloningEnabled != null) {
-			attributesMutator.setCloningEnabled(cloningEnabled);
-		}
+			Optional.ofNullable(this.cacheLoader).ifPresent(attributesMutator::setCacheLoader);
+			Optional.ofNullable(this.cacheWriter).ifPresent(attributesMutator::setCacheWriter);
+			Optional.ofNullable(this.cloningEnabled).ifPresent(attributesMutator::setCloningEnabled);
+			Optional.ofNullable(this.evictionMaximum).ifPresent(attributesMutator.getEvictionAttributesMutator()::setMaximum);
 
-		if (isStatisticsEnabled()) {
-			assertStatisticsEnabled();
+			if (isStatisticsEnabled()) {
 
-			if (customEntryIdleTimeout != null) {
-				attributesMutator.setCustomEntryIdleTimeout(customEntryIdleTimeout);
+				assertStatisticsEnabled();
+
+				Optional.ofNullable(this.customEntryIdleTimeout).ifPresent(attributesMutator::setCustomEntryIdleTimeout);
+				Optional.ofNullable(this.customEntryTimeToLive).ifPresent(attributesMutator::setCustomEntryTimeToLive);
+				Optional.ofNullable(this.entryIdleTimeout).ifPresent(attributesMutator::setEntryIdleTimeout);
+				Optional.ofNullable(this.entryTimeToLive).ifPresent(attributesMutator::setEntryTimeToLive);
+				Optional.ofNullable(this.regionIdleTimeout).ifPresent(attributesMutator::setRegionIdleTimeout);
+				Optional.ofNullable(this.regionTimeToLive).ifPresent(attributesMutator::setRegionTimeToLive);
 			}
 
-			if (customEntryTimeToLive != null) {
-				attributesMutator.setCustomEntryTimeToLive(customEntryTimeToLive);
-			}
-
-			if (entryIdleTimeout != null) {
-				attributesMutator.setEntryIdleTimeout(entryIdleTimeout);
-			}
-
-			if (entryTimeToLive != null) {
-				attributesMutator.setEntryTimeToLive(entryTimeToLive);
-			}
-
-			if (regionIdleTimeout != null) {
-				attributesMutator.setRegionIdleTimeout(regionIdleTimeout);
-			}
-
-			if (regionTimeToLive != null) {
-				attributesMutator.setRegionTimeToLive(regionTimeToLive);
-			}
-		}
-
-		if (evictionMaximum != null) {
-			EvictionAttributesMutator evictionAttributesMutator = attributesMutator.getEvictionAttributesMutator();
-			evictionAttributesMutator.setMaximum(evictionMaximum);
-		}
-
-		if (!ObjectUtils.isEmpty(gatewaySenders)) {
-			for (GatewaySender gatewaySender : gatewaySenders) {
-				attributesMutator.addGatewaySenderId(gatewaySender.getId());
-			}
-		}
+			Arrays.stream(nullSafeArray(this.gatewaySenders, GatewaySender.class)).forEach(it ->
+				attributesMutator.addGatewaySenderId(it.getId()));
+		});
 	}
 
 	@Override
@@ -222,10 +191,11 @@ public class LookupRegionFactoryBean<K, V> extends RegionLookupFactoryBean<K, V>
 
 	/* (non-Javadoc) */
 	private void assertStatisticsEnabled() {
+
 		Region localRegion = getRegion();
+
 		Assert.state(localRegion.getAttributes().getStatisticsEnabled(), String.format(
-			"Statistics for Region '%1$s' must be enabled to change Entry & Region TTL/TTI Expiration settings",
+			"Statistics for Region [%s] must be enabled to change Entry & Region TTL/TTI Expiration settings",
 				localRegion.getFullPath()));
 	}
-
 }

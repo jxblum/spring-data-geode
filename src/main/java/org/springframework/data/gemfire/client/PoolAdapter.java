@@ -42,148 +42,122 @@ public abstract class PoolAdapter implements Pool {
 
 	public static final String NOT_IMPLEMENTED = "Not Implemented";
 
-	/* (non-Javadoc) */
 	public boolean isDestroyed() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getFreeConnectionTimeout() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public long getIdleTimeout() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getLoadConditioningInterval() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public List<InetSocketAddress> getLocators() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getMaxConnections() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getMinConnections() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public boolean getMultiuserAuthentication() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public String getName() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
-	@Override
 	public List<InetSocketAddress> getOnlineLocators() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getPendingEventCount() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public long getPingInterval() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public boolean getPRSingleHopEnabled() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public QueryService getQueryService() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getReadTimeout() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getRetryAttempts() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public String getServerGroup() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public List<InetSocketAddress> getServers() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getSocketBufferSize() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getSocketConnectTimeout() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getStatisticInterval() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getSubscriptionAckInterval() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public boolean getSubscriptionEnabled() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getSubscriptionMessageTrackingTimeout() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public int getSubscriptionRedundancy() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
+	public int getSubscriptionTimeoutMultiplier() {
+		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
+	}
+
 	public boolean getThreadLocalConnections() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public void destroy() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public void destroy(final boolean keepAlive) {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}
 
-	/* (non-Javadoc) */
 	public void releaseThreadLocalConnection() {
 		throw new UnsupportedOperationException(NOT_IMPLEMENTED);
 	}

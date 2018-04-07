@@ -38,9 +38,9 @@ import org.springframework.data.gemfire.RegionFactoryBean;
 import org.springframework.data.gemfire.RegionLookupFactoryBean;
 import org.springframework.data.gemfire.SimpleCacheListener;
 import org.springframework.data.gemfire.TestUtils;
-import org.springframework.data.gemfire.test.GemfireTestApplicationContextInitializer;
+import org.springframework.data.gemfire.test.mock.context.MockGemFireObjectsApplicationContextInitializer;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -53,16 +53,17 @@ import org.springframework.util.ObjectUtils;
  * @see org.springframework.data.gemfire.LocalRegionFactoryBean
  * @see org.springframework.data.gemfire.config.xml.LocalRegionParser
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations="local-ns.xml", initializers=GemfireTestApplicationContextInitializer.class)
+@RunWith(SpringRunner.class)
+@ContextConfiguration(locations="local-ns.xml", initializers = MockGemFireObjectsApplicationContextInitializer.class)
+@SuppressWarnings("unused")
 public class LocalRegionNamespaceTest {
 
 	@Autowired
 	private ApplicationContext context;
 
-
 	@Test
 	public void testSimpleLocalRegion() throws Exception {
+
 		assertTrue(context.containsBean("simple"));
 
 		Region<?, ?> simple = context.getBean("simple", Region.class);
@@ -77,6 +78,7 @@ public class LocalRegionNamespaceTest {
 	@Test
 	@SuppressWarnings({ "deprecation", "rawtypes" })
 	public void testPublisherLocalRegion() throws Exception {
+
 		assertTrue(context.containsBean("pub"));
 
 		RegionFactoryBean publisherRegionFactoryBean = context.getBean("&pub", RegionFactoryBean.class);
@@ -95,6 +97,7 @@ public class LocalRegionNamespaceTest {
 	@Test
 	@SuppressWarnings("rawtypes")
 	public void testComplexLocal() throws Exception {
+
 		assertTrue(context.containsBean("complex"));
 
 		RegionFactoryBean complexRegionFactoryBean = context.getBean("&complex", RegionFactoryBean.class);
@@ -115,6 +118,7 @@ public class LocalRegionNamespaceTest {
 	@Test
 	@SuppressWarnings("rawtypes")
 	public void testLocalWithAttributes() throws Exception {
+
 		assertTrue(context.containsBean("local-with-attributes"));
 
 		Region region = context.getBean("local-with-attributes", Region.class);
@@ -139,6 +143,7 @@ public class LocalRegionNamespaceTest {
 	@Test
 	@SuppressWarnings("rawtypes")
 	public void testRegionLookup() throws Exception {
+
 		Cache cache = context.getBean(Cache.class);
 		Region existing = cache.createRegionFactory().create("existing");
 

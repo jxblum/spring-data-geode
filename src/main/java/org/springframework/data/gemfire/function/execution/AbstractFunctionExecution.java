@@ -25,7 +25,6 @@ import org.apache.geode.cache.execute.FunctionException;
 import org.apache.geode.cache.execute.FunctionService;
 import org.apache.geode.cache.execute.ResultCollector;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 /**
  * Base class for * Creating a GemFire {@link Execution} using {@link FunctionService}.  Protected setters support
@@ -34,6 +33,7 @@ import org.springframework.util.StringUtils;
  * @author David Turanski
  * @author John Blum
  */
+@SuppressWarnings("unused")
 abstract class AbstractFunctionExecution {
 
 	private final static String NO_RESULT_MESSAGE = "Cannot return any result as the Function#hasResult() is false";
@@ -51,39 +51,42 @@ abstract class AbstractFunctionExecution {
 	private String functionId;
 
 	public AbstractFunctionExecution(Function function, Object... args) {
-		Assert.notNull(function, "function cannot be null");
+
+		Assert.notNull(function, "Function cannot be null");
+
 		this.function = function;
 		this.functionId = function.getId();
 		this.args = args;
 	}
 
 	public AbstractFunctionExecution(String functionId, Object... args) {
-		Assert.isTrue(StringUtils.hasLength(functionId), "functionId cannot be null or empty");
+
+		Assert.hasText(functionId, "Function ID must not be null or empty");
+
 		this.functionId = functionId;
 		this.args = args;
 	}
 
-	AbstractFunctionExecution() {
-	}
+	AbstractFunctionExecution() { }
 
 	Object[] getArgs() {
-		return args;
+		return this.args;
 	}
 
 	ResultCollector<?, ?> getCollector() {
-		return resultCollector;
+		return this.resultCollector;
 	}
 
 	Function getFunction() {
-		return function;
+		return this.function;
 	}
 
 	String getFunctionId() {
-		return functionId;
+		return this.functionId;
 	}
 
 	long getTimeout() {
-		return timeout;
+		return this.timeout;
 	}
 
 	<T> Iterable<T> execute() {
@@ -92,9 +95,10 @@ abstract class AbstractFunctionExecution {
 
 	@SuppressWarnings("unchecked")
 	<T> Iterable<T> execute(Boolean returnResult) {
+
 		Execution execution = getExecution();
 
-		execution = execution.withArgs(getArgs());
+		execution = execution.setArguments(getArgs());
 		execution = (getCollector() == null ? execution : execution.withCollector(getCollector()));
 		execution = (getKeys() == null ? execution : execution.withFilter(getKeys()));
 
@@ -126,11 +130,8 @@ abstract class AbstractFunctionExecution {
 				try {
 					results = (Iterable<T>) resultCollector.getResult(this.timeout, TimeUnit.MILLISECONDS);
 				}
-				catch (FunctionException e) {
-					throw new RuntimeException(e);
-				}
-				catch (InterruptedException e) {
-					throw new RuntimeException(e);
+				catch (FunctionException | InterruptedException cause) {
+					throw new RuntimeException(cause);
 				}
 			}
 			else {
@@ -151,6 +152,7 @@ abstract class AbstractFunctionExecution {
 
 	@SuppressWarnings("unchecked")
 	<T> T executeAndExtract() {
+
 		Iterable<T> results = execute();
 
 		if (results == null || !results.iterator().hasNext()) {
@@ -200,11 +202,13 @@ abstract class AbstractFunctionExecution {
 	}
 
 	private boolean isRegisteredFunction() {
-		return function == null;
+		return this.function == null;
 	}
 
 	private <T> Iterable<T> replaceSingletonNullCollectionWithEmptyList(Iterable<T> results) {
+
 		if (results != null) {
+
 			Iterator<T> it = results.iterator();
 
 			if (!it.hasNext()) {
@@ -212,11 +216,10 @@ abstract class AbstractFunctionExecution {
 			}
 
 			if (it.next() == null && !it.hasNext()) {
-				return new ArrayList<T>();
+				return new ArrayList<>();
 			}
 		}
 
 		return results;
 	}
-
 }

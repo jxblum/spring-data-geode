@@ -40,9 +40,9 @@ import org.springframework.data.gemfire.RegionLookupFactoryBean;
 import org.springframework.data.gemfire.ReplicatedRegionFactoryBean;
 import org.springframework.data.gemfire.SimpleCacheListener;
 import org.springframework.data.gemfire.TestUtils;
-import org.springframework.data.gemfire.test.GemfireTestApplicationContextInitializer;
+import org.springframework.data.gemfire.test.mock.context.MockGemFireObjectsApplicationContextInitializer;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.ObjectUtils;
 
 /**
@@ -55,8 +55,9 @@ import org.springframework.util.ObjectUtils;
  * @see org.springframework.data.gemfire.ReplicatedRegionFactoryBean
  * @see org.springframework.data.gemfire.config.xml.ReplicatedRegionParser
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations="replicated-ns.xml", initializers=GemfireTestApplicationContextInitializer.class)
+@RunWith(SpringRunner.class)
+@ContextConfiguration(locations = "replicated-ns.xml",
+	initializers = MockGemFireObjectsApplicationContextInitializer.class)
 @SuppressWarnings("unused")
 public class ReplicatedRegionNamespaceTest {
 
@@ -65,6 +66,7 @@ public class ReplicatedRegionNamespaceTest {
 
 	@Test
 	public void testSimpleReplicateRegion() throws Exception {
+
 		assertTrue(context.containsBean("simple"));
 
 		RegionFactoryBean simpleRegionFactoryBean = context.getBean("&simple", RegionFactoryBean.class);
@@ -83,6 +85,7 @@ public class ReplicatedRegionNamespaceTest {
 	@Test
 	@SuppressWarnings({ "deprecation", "rawtypes" })
 	public void testPublishReplicateRegion() throws Exception {
+
 		assertTrue(context.containsBean("pub"));
 
 		RegionFactoryBean publisherRegionFactoryBean = context.getBean("&pub", RegionFactoryBean.class);
@@ -100,6 +103,7 @@ public class ReplicatedRegionNamespaceTest {
 	@Test
 	@SuppressWarnings("rawtypes")
 	public void testComplexReplicateRegion() throws Exception {
+
 		assertTrue(context.containsBean("complex"));
 
 		RegionFactoryBean complexRegionFactoryBean = context.getBean("&complex", RegionFactoryBean.class);
@@ -121,6 +125,7 @@ public class ReplicatedRegionNamespaceTest {
 	@Test
 	@SuppressWarnings("rawtypes")
 	public void testReplicatedRegionWithAttributes() throws Exception {
+
 		assertTrue(context.containsBean("replicated-with-attributes"));
 
 		Region region = context.getBean("replicated-with-attributes", Region.class);
@@ -149,6 +154,7 @@ public class ReplicatedRegionNamespaceTest {
 
 	@Test
 	public void testReplicatedWithSynchronousIndexUpdates() {
+
 		assertTrue(context.containsBean("replicated-with-synchronous-index-updates"));
 
 		Region region = context.getBean("replicated-with-synchronous-index-updates", Region.class);
@@ -165,6 +171,7 @@ public class ReplicatedRegionNamespaceTest {
 	@Test
 	@SuppressWarnings("rawtypes")
 	public void testRegionLookup() throws Exception {
+
 		Cache cache = context.getBean(Cache.class);
 		Region existing = cache.createRegionFactory().create("existing");
 
@@ -179,6 +186,7 @@ public class ReplicatedRegionNamespaceTest {
 
 	@Test
 	public void testCompressedReplicateRegion() {
+
 		assertTrue(context.containsBean("Compressed"));
 
 		Region<?, ?> compressed = context.getBean("Compressed", Region.class);
