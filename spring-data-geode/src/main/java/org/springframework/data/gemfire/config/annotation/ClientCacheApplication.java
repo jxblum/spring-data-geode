@@ -23,6 +23,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.apache.geode.cache.client.ClientCache;
 import org.apache.geode.cache.client.PoolFactory;
 import org.apache.geode.cache.control.ResourceManager;
 
@@ -33,10 +34,11 @@ import org.springframework.data.gemfire.GemfireUtils;
 import org.springframework.data.gemfire.support.GemfireBeanFactoryLocator;
 
 /**
- * The {@link ClientCacheApplication} annotation enables a Spring Data GemFire based application to become
- * a GemFire cache client (i.e. {@link org.apache.geode.cache.client.ClientCache}).
+ * The {@link ClientCacheApplication} annotation enables a Spring Data-based application to become an Apache Geode
+ * or Pivotal GemFire cache client (i.e. {@link ClientCache}) application.
  *
  * @author John Blum
+ * @see org.apache.geode.cache.client.ClientCache
  * @see org.apache.geode.cache.client.PoolFactory
  * @see org.apache.geode.cache.control.ResourceManager
  * @see org.springframework.context.annotation.Configuration
