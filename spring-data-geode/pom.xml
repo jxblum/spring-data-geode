@@ -66,6 +66,12 @@
 
 		<dependency>
 			<groupId>org.apache.geode</groupId>
+			<artifactId>geode-serialization</artifactId>
+			<version>${geode.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.geode</groupId>
 			<artifactId>geode-wan</artifactId>
 			<version>${geode.version}</version>
 		</dependency>
