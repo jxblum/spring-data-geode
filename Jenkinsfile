@@ -15,7 +15,7 @@ pipeline {
 		stage("test: baseline (jdk8)") {
 			when {
 				anyOf {
-					branch 'master'
+					branch 'master-next'
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -97,7 +97,7 @@ pipeline {
 		stage('Release to artifactory') {
 			when {
 				anyOf {
-					branch 'master'
+					branch 'master-next'
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -133,9 +133,10 @@ pipeline {
 				}
 			}
 		}
+
 		stage('Publish documentation') {
 			when {
-				branch 'master'
+				branch 'master-next'
 			}
 			agent {
 				label 'data'
