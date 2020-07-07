@@ -15,7 +15,7 @@ pipeline {
 		stage("test: baseline (jdk8)") {
 			when {
 				anyOf {
-					branch 'master'
+					branch 'master-next'
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -39,62 +39,10 @@ pipeline {
 			}
 		}
 
-		stage("Test other configurations") {
-			when {
-				anyOf {
-					branch 'master'
-					not { triggeredBy 'UpstreamCause' }
-				}
-			}
-			parallel {
-				stage("test: baseline (jdk11)") {
-					agent {
-						docker {
-							image 'adoptopenjdk/openjdk11:latest'
-							label 'data'
-							args '-v $HOME:/tmp/jenkins-home'
-						}
-					}
-					options { timeout(time: 30, unit: 'MINUTES') }
-					steps {
-						sh 'rm -rf ?'
-						sh 'rm -Rf `find . -name "BACKUPDEFAULT*"`'
-						sh 'rm -Rf `find . -name "ConfigDiskDir*"`'
-						sh 'rm -Rf `find . -name "locator*" | grep -v "src"`'
-						sh 'rm -Rf `find . -name "newDB"`'
-						sh 'rm -Rf `find . -name "server" | grep -v "src"`'
-						sh 'rm -Rf `find . -name "*.log"`'
-						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home -Duser.dir=$PWD -Djava.io.tmpdir=/tmp" ./mvnw -Pjava11 clean dependency:list test -Dsort -U -B'
-					}
-				}
-
-				stage("test: baseline (jdk14)") {
-					agent {
-						docker {
-							image 'adoptopenjdk/openjdk14:latest'
-							label 'data'
-							args '-v $HOME:/tmp/jenkins-home'
-						}
-					}
-					options { timeout(time: 30, unit: 'MINUTES') }
-					steps {
-						sh 'rm -rf ?'
-						sh 'rm -Rf `find . -name "BACKUPDEFAULT*"`'
-						sh 'rm -Rf `find . -name "ConfigDiskDir*"`'
-						sh 'rm -Rf `find . -name "locator*" | grep -v "src"`'
-						sh 'rm -Rf `find . -name "newDB"`'
-						sh 'rm -Rf `find . -name "server" | grep -v "src"`'
-						sh 'rm -Rf `find . -name "*.log"`'
-						sh 'MAVEN_OPTS="-Duser.name=jenkins -Duser.home=/tmp/jenkins-home -Duser.dir=$PWD -Djava.io.tmpdir=/tmp" ./mvnw -Pjava11 clean dependency:list test -Dsort -U -B'
-					}
-				}
-			}
-		}
-
 		stage('Release to artifactory') {
 			when {
 				anyOf {
-					branch 'master'
+					branch 'master-next'
 					not { triggeredBy 'UpstreamCause' }
 				}
 			}
@@ -129,9 +77,10 @@ pipeline {
 						'-Dmaven.test.skip=true clean deploy -U -B'
 			}
 		}
+
 		stage('Publish documentation') {
 			when {
-				branch 'master'
+				branch 'master-next'
 			}
 			agent {
 				docker {
