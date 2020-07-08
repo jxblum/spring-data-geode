@@ -32,6 +32,7 @@ import org.apache.geode.cache.client.ClientCache;
 import org.apache.geode.cache.client.Pool;
 import org.apache.geode.cache.client.PoolFactory;
 import org.apache.geode.cache.client.PoolManager;
+import org.apache.geode.cache.client.SocketFactory;
 import org.apache.geode.cache.query.QueryService;
 import org.apache.geode.distributed.DistributedSystem;
 
@@ -120,6 +121,8 @@ public class PoolFactoryBean extends AbstractFactoryBeanSupport<Pool> implements
 	private PoolFactoryInitializer poolFactoryInitializer;
 
 	private PoolResolver poolResolver = DEFAULT_POOL_RESOLVER;
+
+	private SocketFactory socketFactory;
 
 	private String name;
 	private String serverGroup = PoolFactory.DEFAULT_SERVER_GROUP;
@@ -323,6 +326,7 @@ public class PoolFactoryBean extends AbstractFactoryBeanSupport<Pool> implements
 			it.setServerGroup(this.serverGroup);
 			it.setSocketBufferSize(this.socketBufferSize);
 			it.setSocketConnectTimeout(this.socketConnectTimeout);
+			it.setSocketFactory(this.socketFactory);
 			it.setStatisticInterval(this.statisticInterval);
 			it.setSubscriptionAckInterval(this.subscriptionAckInterval);
 			it.setSubscriptionEnabled(this.subscriptionEnabled);
@@ -765,6 +769,10 @@ public class PoolFactoryBean extends AbstractFactoryBeanSupport<Pool> implements
 
 	public void setSocketConnectTimeout(int socketConnectTimeout) {
 		this.socketConnectTimeout = socketConnectTimeout;
+	}
+
+	public void setSocketFactory(SocketFactory socketFactory) {
+		this.socketFactory = socketFactory;
 	}
 
 	public void setStatisticInterval(int statisticInterval) {
