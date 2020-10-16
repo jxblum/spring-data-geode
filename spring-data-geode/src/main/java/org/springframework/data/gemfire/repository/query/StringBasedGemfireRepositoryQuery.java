@@ -20,7 +20,9 @@ import static org.springframework.data.gemfire.util.RuntimeExceptionFactory.newI
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
+import org.apache.geode.cache.Region;
 import org.apache.geode.cache.query.SelectResults;
 
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -79,9 +81,9 @@ public class StringBasedGemfireRepositoryQuery extends GemfireRepositoryQuery {
 	 */
 	StringBasedGemfireRepositoryQuery() {
 
-		this.query = null;
 		this.nonPagedQueryExecutor = (queryMethod, query, arguments) -> null;
 		this.pagedQueryExecutor = (queryMethod, query, arguments) -> null;
+		this.query = null;
 		this.template = null;
 
 		register(ProvidedQueryPostProcessors.LIMIT
@@ -216,6 +218,20 @@ public class StringBasedGemfireRepositoryQuery extends GemfireRepositoryQuery {
 	}
 
 	/**
+	 * Gets the {@link Region} for which this {@link RepositoryQuery} is based.
+	 *
+	 * The {@link Region} is the subject of this {@link RepositoryQuery}.
+	 *
+	 * @return the {@link Region} for which this {@link RepositoryQuery} is based.
+	 * @see org.springframework.data.gemfire.GemfireTemplate#getRegion()
+	 * @see org.apache.geode.cache.Region
+	 * @see #getTemplate()
+	 */
+	protected @NonNull Region<?, ?> getRegion() {
+		return getTemplate().getRegion();
+	}
+
+	/**
 	 * Returns a reference to the {@link GemfireTemplate} used to perform all data access and query operations.
 	 *
 	 * @return a reference to the {@link GemfireTemplate} used to perform all data access and query operations.
@@ -325,7 +341,8 @@ public class StringBasedGemfireRepositoryQuery extends GemfireRepositoryQuery {
 			return collection;
 		}
 		else if (queryMethod.isPageQuery()) {
-			return new PageImpl<Object>(new ArrayList<>(collection), PagingUtils.getPageRequest(queryMethod, arguments), Integer.MAX_VALUE);
+			return new PageImpl<Object>(new ArrayList<>(collection), PagingUtils.getPageRequest(queryMethod, arguments),
+				Integer.MAX_VALUE);
 		}
 		else if (queryMethod.isQueryForEntity()) {
 			if (collection.isEmpty()) {
@@ -455,7 +472,7 @@ public class StringBasedGemfireRepositoryQuery extends GemfireRepositoryQuery {
 	}
 
 	/**
-	 * A {@link SimplePagedOqlQueryExecutor} implementation that implements a paged OQL query statement
+	 * A {@link PageLimitingOqlQueryExecutor} implementation that implements a paged OQL query statement
 	 * using a 2-phase approach.
 	 *
 	 * The first phase executes a {@literal keys query} (or OQL query for keys) satisfying the user's defined
@@ -468,9 +485,9 @@ public class StringBasedGemfireRepositoryQuery extends GemfireRepositoryQuery {
 	 * in the user's original OQL query statement to limit the results returned to exactly those keys satisfying
 	 * the {@link Pageable requested page}.
 	 *
-	 * @see SimplePagedOqlQueryExecutor
+	 * @see PageLimitingOqlQueryExecutor
 	 */
-	static class TwoPhasePagedOqlQueryExecutor extends SimplePagedOqlQueryExecutor {
+	class TwoPhasePagedOqlQueryExecutor extends PageLimitingOqlQueryExecutor {
 
 		/**
 		 * Constructs a new instance of {@link TwoPhasePagedOqlQueryExecutor} initialized with the given, required
@@ -482,6 +499,37 @@ public class StringBasedGemfireRepositoryQuery extends GemfireRepositoryQuery {
 		 */
 		TwoPhasePagedOqlQueryExecutor(@NonNull GemfireTemplate template) {
 			super(template);
+		}
+
+		@Override
+		@SuppressWarnings("rawtypes")
+		protected SelectResults doExecute(@NonNull Pageable pageRequest, @NonNull QueryMethod queryMethod,
+				@NonNull String query, @NonNull Object... arguments) {
+
+			if (isDerivedQuery()) {
+
+				Region<?, ?> region = getRegion();
+
+				PagedQueryString pagedQueryString = PagedQueryString.of(query)
+					.withRepositoryQuery(StringBasedGemfireRepositoryQuery.this)
+					.withRegion(getRegion());
+
+				String keysQuery = pagedQueryString.getKeysQuery(region);
+				String limitedKeysQuery = preparePagedQuery(keysQuery, pageRequest);
+
+				SelectResults<?> keyResults = getTemplate().find(limitedKeysQuery, arguments);
+
+				List<?> keys = keyResults.asList();
+				List<?> pagedKeys = PagingUtils.getPagedList(keys, pageRequest);
+
+				String valuesQuery = pagedQueryString.getValuesQuery(region, pagedKeys);
+
+				SelectResults<?> valueResults = getTemplate().find(valuesQuery, arguments);
+
+				return valueResults;
+			}
+
+			throw newUnsupportedQueryExecutionException(query);
 		}
 
 		/**
@@ -500,8 +548,7 @@ public class StringBasedGemfireRepositoryQuery extends GemfireRepositoryQuery {
 		@Override
 		@SuppressWarnings("rawtypes")
 		protected SelectResults processPagedQueryResults(SelectResults selectResults, Pageable pageRequest) {
-			//return selectResults;
-			return super.processPagedQueryResults(selectResults, pageRequest);
+			return selectResults;
 		}
 	}
 
@@ -610,12 +657,19 @@ public class StringBasedGemfireRepositoryQuery extends GemfireRepositoryQuery {
 				if (pagedQueryResultSetLimit < queryLimit) {
 					pagedQueryString = pagedQueryString.adjustLimit(pagedQueryResultSetLimit);
 				}
-				else {
+				else if (pagedQueryResultSetLimit == queryLimit) {
+					// do not do anything
+					if (getLogger().isDebugEnabled()) {
+						getLogger().debug("Query result set LIMIT for requested page [{}}] and user-defined LIMIT [{}] are the same",
+							pageRequest.getPageNumber(), queryLimit);
+					}
+				}
+				else { // queryLimit < pagedQueryResultSetLimit
 
 					int startIndex = PagingUtils.getQueryResultSetStartIndexForPage(pageRequest);
 
 					Assert.state(queryLimit > startIndex,
-						() -> String.format("The user-defined OQL query result set LIMIT [%d] must be greater than the requested page offset [%d]",
+						() -> String.format("The user-defined OQL query result set LIMIT [%d] must be greater than the requested page offset [%d] (0 index-based page number * page size)",
 							queryLimit, startIndex));
 
 					int endIndex = PagingUtils.getQueryResultSetEndIndexForPage(pageRequest);
