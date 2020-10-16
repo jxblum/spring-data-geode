@@ -16,6 +16,8 @@
  */
 package org.springframework.data.gemfire.repository.query.support;
 
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 
 /**
@@ -24,16 +26,19 @@ import org.springframework.util.StringUtils;
  *
  * @author John Blum
  * @see <a href="https://geode.apache.org/docs/guide/113/developing/query_additional/supported_keywords.html">Supported Keywords</a>
- * @since 1.0.0
+ * @since 1.9.0
  */
 public enum OqlKeyword {
 
 	AND,
 	AS,
+	ASC,
 	COUNT,
+	DESC,
 	DISTINCT,
 	ELEMENT,
 	FROM,
+	GROUP_BY("GROUP BY"),
 	HINT,
 	IMPORT,
 	IN,
@@ -75,20 +80,39 @@ public enum OqlKeyword {
 	}
 
 	/**
+	 * Null-safe method to determine whether the given {@link String value} is a (reserved) OQL keyword.
+	 *
+	 * @param value {@link String} to evaluate.
+	 * @return a boolean value indicating whether the given {@link String value} is a (reserved) OQL keyword.
+	 * @see #valueOfIgnoreCase(String)
+	 */
+	public static boolean isKeyword(@Nullable String value) {
+
+		try {
+			valueOfIgnoreCase(value);
+			return true;
+		}
+		catch (Throwable ignore) {
+			return false;
+		}
+	}
+
+	/**
 	 * Looks up an {@link OqlKeyword} for the given {@code keyword} {@link String}.
 	 *
 	 * @param keyword name of the GemFire OQL Keyword to lookup.
 	 * @return an {@link OqlKeyword} enumerated value for the given {@code keyword} {@link String}.
 	 * @throws IllegalArgumentException if {@code keyword} is not a valid GemFire OQL Keyword.
 	 */
-	public static OqlKeyword valueOfIgnoreCase(String keyword) {
+	public static @NonNull OqlKeyword valueOfIgnoreCase(@Nullable String keyword) {
+
 		for (OqlKeyword oqlKeyword : values()) {
 			if (oqlKeyword.getKeyword().equalsIgnoreCase(StringUtils.trimWhitespace(keyword))) {
 				return oqlKeyword;
 			}
 		}
 
-		throw new IllegalArgumentException(String.format("[%s] is not a valid GemFire OQL Keyword", keyword));
+		throw new IllegalArgumentException(String.format("[%s] is not a valid OQL Keyword", keyword));
 	}
 
 	/**

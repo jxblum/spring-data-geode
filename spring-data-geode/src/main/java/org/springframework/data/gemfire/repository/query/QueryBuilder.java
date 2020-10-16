@@ -24,12 +24,15 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
 /**
- * The QueryBuilder class is used to build a {@link QueryString}.
+ * The {@link QueryBuilder} class is used to build a {@link QueryString}.
  *
  * @author Oliver Gierke
  * @author David Turanski
  * @author John Blum
+ * @see org.apache.geode.cache.Region
  * @see org.springframework.data.gemfire.repository.query.QueryString
+ * @see org.springframework.data.gemfire.repository.query.support.OqlKeyword
+ * @see org.springframework.data.repository.query.parser.PartTree
  */
 class QueryBuilder {
 

@@ -19,79 +19,93 @@ import java.util.Iterator;
 
 import org.springframework.data.repository.query.parser.Part;
 import org.springframework.data.repository.query.parser.Part.Type;
+import org.springframework.lang.NonNull;
 import org.springframework.util.Assert;
 
 class Predicates implements Predicate {
 
-	private final Predicate current;
+	protected static final String AND_TEMPLATE = "%1$s AND %2$s";
+	protected static final String OR_TEMPLATE = "%1$s OR %2$s";
 
 	/**
-	 * Creates a new {@link Predicates} wrapper instance.
+	 * Factory method used to construct a new {@link Predicates} for the given {@link Part}
+	 * and collection of {@link Iterator Indexes}.
 	 *
-	 * @param predicate must not be {@literal null}.
+	 * @param part {@link Part} of the query; must not be {@literal null}.
+	 * @param indexes {@link Iterator} of indexes refering to parameter placeholders in the query;
+	 * must not be {@literal null}.
+	 * @return a new instance of {@link Predicates} wrapping the {@literal WHERE} clause condition expression
+	 * ({@link Part}).
+	 * @throws IllegalArgumentException if {@link Part} or {@link Iterator Indexes} are {@literal null}.
+	 * @see org.springframework.data.repository.query.parser.Part
+	 * @see java.util.Iterator
+	 * @see AtomicPredicate
+	 * @see #Predicates(Predicate)
 	 */
-	private Predicates(Predicate predicate) {
-		this.current = predicate;
+	public static Predicates create(@NonNull Part part, @NonNull Iterator<Integer> indexes) {
+		return new Predicates(new AtomicPredicate(part, indexes));
 	}
 
-	private static Predicates create(Predicate predicate) {
+	private static Predicates create(@NonNull Predicate predicate) {
 		return new Predicates(predicate);
 	}
 
+	@NonNull
+	private final Predicate current;
+
 	/**
-	 * Creates a new Predicate for the given {@link Part} and index iterator.
+	 * Constructs a new instance of {@link Predicates} initialized with the given {@link Predicate}
+	 * as the current instance.
 	 *
-	 * @param part must not be {@literal null}.
-	 * @param indexes must not be {@literal null}.
-	 * @return an instance of {@link Predicates} wrapping the WHERE clause condition expression ({@link Part}).
+	 * @param predicate {@link Predicate} used as the current instance; must not be {@literal null}.
+	 * @see org.springframework.data.gemfire.repository.query.Predicate
 	 */
-	public static Predicates create(Part part, Iterator<Integer> indexes) {
-		return create(new AtomicPredicate(part, indexes));
+	private Predicates(@NonNull Predicate predicate) {
+		this.current = predicate;
 	}
 
 	/**
-	 * And-concatenates the given {@link Predicate} to the current one.
+	 * {@literal AND} concatenates the given {@link Predicate} to the current {@link Predicate}.
 	 *
-	 * @param predicate must not be {@literal null}.
-	 * @return an instance of {@link Predicates} wrapping an AND condition.
+	 * @param predicate {@link Predicate} to concatenate with the current one; must not be {@literal null}.
+	 * @return a new instance of {@link Predicates} representing an {@literal AND} condition.
+	 * @see org.springframework.data.gemfire.repository.query.Predicates
+	 * @see org.springframework.data.gemfire.repository.query.Predicate
 	 */
-	public Predicates and(final Predicate predicate) {
-		return create(new Predicate() {
-			@Override
-			public String toString(String alias) {
-				return String.format("%s AND %s", Predicates.this.current.toString(alias), predicate.toString(alias));
-			}
-		});
+	public Predicates and(@NonNull Predicate predicate) {
+		return concatenate(predicate, AND_TEMPLATE);
 	}
 
 	/**
-	 * Or-concatenates the given {@link Predicate} to the current one.
+	 * {@literal OR} concatenates the given {@link Predicate} to the current {@link Predicate}.
 	 *
-	 * @param predicate must not be {@literal null}.
-	 * @return an instance of {@link Predicates} wrapping an OR condition.
+	 * @param predicate {@link Predicate} to concatenate with the current one; must not be {@literal null}.
+	 * @return a new instance of {@link Predicates} representing an {@literal OR} condition.
+	 * @see org.springframework.data.gemfire.repository.query.Predicates
+	 * @see org.springframework.data.gemfire.repository.query.Predicate
 	 */
-	public Predicates or(final Predicate predicate) {
-		return create(new Predicate() {
-			@Override
-			public String toString(String alias) {
-				return String.format("%s OR %s", Predicates.this.current.toString(alias), predicate.toString(alias));
-			}
-		});
+	public Predicates or(@NonNull Predicate predicate) {
+		return concatenate(predicate, OR_TEMPLATE);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.data.gemfire.repository.query.Predicate#toString(java.lang.String)
+	private Predicates concatenate(Predicate predicate, String template) {
+		return create(alias -> String.format(template,
+			Predicates.this.current.toString(alias), predicate.toString(alias)));
+	}
+
+	/**
+	 * @inheritDoc
 	 */
 	@Override
 	public String toString(String alias) {
-		return current.toString(alias);
+		return this.current.toString(alias);
 	}
 
 	/**
-	 * Predicate to create a predicate expression for a {@link Part}.
+	 * Predicate type used to create a query predicate expression for a {@link Part}.
 	 *
 	 * @author Oliver Gierke
+	 * @author John Blum
 	 */
 	public static class AtomicPredicate implements Predicate {
 
@@ -100,32 +114,36 @@ class Predicates implements Predicate {
 		private final Part part;
 
 		/**
-		 * Creates a new {@link AtomicPredicate}.
+		 * Constructs a new instance of {@link AtomicPredicate} initialized with the query predicate {@link Part}
+		 * and {@link Iterator} of indexes referencing query parameters.
 		 *
 		 * @param part must not be {@literal null}.
 		 * @param indexes must not be {@literal null}.
 		 */
 		public AtomicPredicate(Part part, Iterator<Integer> indexes) {
+
 			Assert.notNull(part, "Query Predicate Part must not be null");
-			Assert.notNull(indexes, "Iterator of numeric, indexed query parameter placeholders must not be null");
+			Assert.notNull(indexes, "Iterator of numeric-based, indexed query parameter placeholders must not be null");
 
 			this.part = part;
 			this.indexes = indexes;
 		}
 
 		/**
-		 * Builds a conditional expression for the entity property in the WHERE clause of the GemFire OQL
-		 * query statement.
+		 * Builds a {@link String conditional expression} as a query predicate for the entity property
+		 * in the {@literal WHERE} clause of the OQL query statement.
 		 *
 		 * @see org.springframework.data.gemfire.repository.query.Predicate#toString(java.lang.String)
 		 */
 		@Override
 		public String toString(String alias) {
+
 			if (isIgnoreCase()) {
-				return String.format("%s.equalsIgnoreCase($%d)", resolveProperty(alias), indexes.next());
+				return String.format("%s.equalsIgnoreCase($%d)", resolveProperty(alias), this.indexes.next());
 			}
 			else {
-				Type partType = part.getType();
+
+				Type partType = this.part.getType();
 
 				switch (partType) {
 					case IS_NULL:
@@ -137,13 +155,14 @@ class Predicates implements Predicate {
 							Type.TRUE.equals(partType));
 					default:
 						return String.format("%s %s $%d", resolveProperty(alias), resolveOperator(partType),
-							indexes.next());
+							this.indexes.next());
 				}
 			}
 		}
 
 		boolean isIgnoreCase() {
-			switch (part.shouldIgnoreCase()) {
+
+			switch (this.part.shouldIgnoreCase()) {
 				case ALWAYS:
 				case WHEN_POSSIBLE:
 					return true;
@@ -153,12 +172,8 @@ class Predicates implements Predicate {
 			}
 		}
 
-		String resolveProperty(String alias) {
-			return String.format("%1$s.%2$s", resolveAlias(alias), part.getProperty().toDotPath());
-		}
-
 		String resolveAlias(String alias) {
-			return (alias != null ? alias : QueryBuilder.DEFAULT_ALIAS);
+			return alias != null ? alias : QueryBuilder.DEFAULT_ALIAS;
 		}
 
 		/**
@@ -168,6 +183,7 @@ class Predicates implements Predicate {
 		 * @return a GemFire OQL operator.
 		 */
 		String resolveOperator(Type partType) {
+
 			switch (partType) {
 				// Equality - Is
 				case FALSE:
@@ -200,8 +216,12 @@ class Predicates implements Predicate {
 				case CONTAINING:
 					return "LIKE";
 				default:
-					throw new IllegalArgumentException(String.format("Unsupported operator %s!", partType));
+					throw new IllegalArgumentException(String.format("Unsupported operator [%s]", partType));
 			}
+		}
+
+		String resolveProperty(String alias) {
+			return String.format("%1$s.%2$s", resolveAlias(alias), part.getProperty().toDotPath());
 		}
 	}
 }

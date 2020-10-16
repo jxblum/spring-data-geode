@@ -149,13 +149,33 @@ public abstract class RegionUtils extends CacheUtils {
 		return region instanceof LocalRegion;
 	}
 
-	@Nullable
-	public static String toRegionName(@Nullable Region<?, ?> region) {
-		return Optional.ofNullable(region).map(Region::getName).orElse(null);
+	/**
+	 * Null-safe method to determine the {@link String name} of the {@link Region}.
+	 *
+	 * @param region {@link Region} to evaluate.
+	 * @return the {@link String name} of the {@link Region}
+	 * or {@literal null} if the {@link Region} is {@literal null}.
+	 * @see org.apache.geode.cache.Region
+	 * @see #toRegionName(String)
+	 */
+	public static @Nullable String toRegionName(@Nullable Region<?, ?> region) {
+
+		return Optional.ofNullable(region)
+			.map(Region::getName)
+			.orElse(null);
 	}
 
-	@Nullable
-	public static String toRegionName(String regionPath) {
+	/**
+	 * Null-safe method to determine a {@link Region} {@link String name}
+	 * from the given {@link Region} {@link String path}.
+	 *
+	 * @param regionPath {@link String} containing the {@link Region} path to evaluate.
+	 * @return a {@link String name} from the given {@link Region} {@link String path}
+	 * or {@literal null} if the {@link Region} {@link String path} is {@literal null}
+	 * or {@literal empty}.
+	 * @see #toRegionName(Region)
+	 */
+	public static @Nullable String toRegionName(@Nullable String regionPath) {
 
 		return Optional.ofNullable(regionPath)
 			.filter(StringUtils::hasText)
@@ -166,13 +186,37 @@ public abstract class RegionUtils extends CacheUtils {
 			.orElse(regionPath);
 	}
 
-	@Nullable
-	public static String toRegionPath(@Nullable Region<?, ?> region) {
-		return Optional.ofNullable(region).map(Region::getFullPath).orElse(null);
+	/**
+	 * Null-safe method to determine the full {@link String path} of the {@link Region}.
+	 *
+	 * @param region {@link Region} to evaluate.
+	 * @return the full {@link String path} of the given {@link Region} or {@literal null}
+	 * if the {@link Region} is {@literal null} or the {@link Region} {@link Region#getFullPath() path}
+	 * is {@literal null} or {@literal empty}.
+	 * @see org.apache.geode.cache.Region
+	 * @see #toRegionPath(String)
+	 */
+	public static @Nullable String toRegionPath(@Nullable Region<?, ?> region) {
+
+		return Optional.ofNullable(region)
+			.map(Region::getFullPath)
+			.filter(StringUtils::hasText)
+			.map(regionPath -> regionPath.startsWith(Region.SEPARATOR) ? regionPath : toRegionPath(regionPath))
+			.orElse(null);
 	}
 
-	@NonNull
-	public static String toRegionPath(String regionName) {
-		return String.format("%1$s%2$s", Region.SEPARATOR, regionName);
+	/**
+	 * Null-safe method to determine a {@link Region} {@link Region#getFullPath() path} from the given {@link String}
+	 * signifying the {@link Region Region's} {@link String name}.
+	 *
+	 * @param regionName {@link String} containing the {@link Region Region's} name.
+	 * @return a {@link Region#getFullPath() path} from the given {@link Region} {@link String name}.
+	 * @see #toRegionPath(Region)
+	 */
+	public static @NonNull String toRegionPath(@Nullable String regionName) {
+
+		return !String.valueOf(regionName).startsWith(Region.SEPARATOR)
+			? String.format("%1$s%2$s", Region.SEPARATOR, regionName)
+			: regionName;
 	}
 }

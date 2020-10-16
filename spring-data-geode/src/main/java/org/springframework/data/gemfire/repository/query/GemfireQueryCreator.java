@@ -45,23 +45,26 @@ class GemfireQueryCreator extends AbstractQueryCreator<QueryString, Predicates> 
 	private final QueryBuilder queryBuilder;
 
 	/**
-	 * Creates a new {@link GemfireQueryCreator} using the given {@link PartTree} and domain class.
+	 * Constructs a new instance of {@link GemfireQueryCreator} using the given {@link PartTree}
+	 * and {@link GemfirePersistentEntity domain class}.
 	 *
-	 * @param tree must not be {@literal null}.
-	 * @param entity must not be {@literal null}.
+	 * @param tree {@link PartTree} object containing parts of the query; must not be {@literal null}.
+	 * @param entity {@link GemfirePersistentEntity} modeling the subject of the query; must not be {@literal null}.
+	 * @see org.springframework.data.gemfire.mapping.GemfirePersistentEntity
+	 * @see org.springframework.data.repository.query.parser.PartTree
 	 */
 	public GemfireQueryCreator(PartTree tree, GemfirePersistentEntity<?> entity) {
 
 		super(tree);
 
 		this.queryBuilder = new QueryBuilder(entity, tree);
-		this.indexes = new IndexProvider();
+		this.indexes = new QueryParameterIndexProvider();
 	}
 
 	@Override
 	public QueryString createQuery(Sort dynamicSort) {
 
-		this.indexes = new IndexProvider();
+		this.indexes = new QueryParameterIndexProvider();
 
 		return super.createQuery(dynamicSort);
 	}
@@ -94,17 +97,17 @@ class GemfireQueryCreator extends AbstractQueryCreator<QueryString, Predicates> 
 	}
 
 	/**
-	 * {@link IndexProvider} is an {@link Iterator} providing sequentially numbered placeholders (starting at 1),
-	 * in a generated GemFire OQL statement corresponding to all possible arguments passed to
+	 * {@link QueryParameterIndexProvider} is an {@link Iterator} providing sequentially numbered placeholders
+	 * (starting at 1), in a generated OQL query statement corresponding to all possible arguments passed to
 	 * the query's indexed parameters.
 	 *
 	 * @see java.util.Iterator
 	 */
-	private static class IndexProvider implements Iterator<Integer> {
+	private static class QueryParameterIndexProvider implements Iterator<Integer> {
 
 		private int index;
 
-		public IndexProvider() {
+		public QueryParameterIndexProvider() {
 			this.index = 1;
 		}
 

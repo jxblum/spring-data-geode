@@ -16,6 +16,7 @@
 package org.springframework.data.gemfire.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -62,7 +63,7 @@ public class RegionUtilsUnitTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void assertNonPersistentDataPolicyWithPersistentAttribute() {
+	public void assertNonPersistentDataPolicyWithPersistentAttributeThrowsIllegalArgumentException() {
 
 		try {
 			RegionUtils.assertDataPolicyAndPersistentAttributeAreCompatible(DataPolicy.REPLICATE, true);
@@ -77,7 +78,7 @@ public class RegionUtilsUnitTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void assertPersistentDataPolicyWithNonPersistentAttribute() {
+	public void assertPersistentDataPolicyWithNonPersistentAttributeThrowsIllegalArgumentException() {
 
 		try {
 			RegionUtils.assertDataPolicyAndPersistentAttributeAreCompatible(DataPolicy.PERSISTENT_PARTITION, false);
@@ -92,11 +93,12 @@ public class RegionUtilsUnitTests {
 	}
 
 	@Test
-	public void closeRegionHandlesNull() {
+	public void closeRegionIsNullSafe() {
 		assertThat(RegionUtils.close((Region<?, ?>) null)).isFalse();
 	}
 
 	@Test
+	@SuppressWarnings("rawtypes")
 	public void closeRegionSuccessfully() {
 
 		Region mockRegion = mock(Region.class);
@@ -107,6 +109,7 @@ public class RegionUtilsUnitTests {
 	}
 
 	@Test
+	@SuppressWarnings("rawtypes")
 	public void closeRegionUnsuccessfully() {
 
 		Region mockRegion = mock(Region.class);
@@ -124,6 +127,7 @@ public class RegionUtilsUnitTests {
 	}
 
 	@Test
+	@SuppressWarnings("rawtypes")
 	public void regionIsCloseable() {
 
 		Region mockRegion = mock(Region.class);
@@ -139,6 +143,7 @@ public class RegionUtilsUnitTests {
 	}
 
 	@Test
+	@SuppressWarnings("rawtypes")
 	public void regionIsNotCloseable() {
 
 		Region mockRegion = mock(Region.class);
@@ -154,6 +159,7 @@ public class RegionUtilsUnitTests {
 	}
 
 	@Test
+	@SuppressWarnings("rawtypes")
 	public void regionWithNoRegionServiceIsNotCloseable() {
 
 		Region mockRegion = mock(Region.class);
@@ -166,11 +172,6 @@ public class RegionUtilsUnitTests {
 	}
 
 	@Test
-	public void nullRegionIsNotLocal() {
-		assertThat(RegionUtils.isLocal(null)).isFalse();
-	}
-
-	@Test
 	public void localRegionIsLocal() {
 		assertThat(RegionUtils.isLocal(mock(LocalRegion.class))).isTrue();
 	}
@@ -178,5 +179,98 @@ public class RegionUtilsUnitTests {
 	@Test
 	public void nonLocalRegionIsNotLocal() {
 		assertThat(RegionUtils.isLocal(mock(Region.class))).isFalse();
+	}
+
+	@Test
+	public void nullRegionIsNotLocal() {
+		assertThat(RegionUtils.isLocal(null)).isFalse();
+	}
+
+	@Test
+	public void toRegionNameWithRegionIsCorrect() {
+
+		Region<?, ?> mockRegion = mock(Region.class);
+
+		doReturn("MockName").when(mockRegion).getName();
+
+		assertThat(RegionUtils.toRegionName(mockRegion)).isEqualTo("MockName");
+
+		verify(mockRegion, times(1)).getName();
+	}
+
+	@Test
+	public void toRegionNameWithNullRegionIsNullSafe() {
+		assertThat(RegionUtils.toRegionName((Region<?, ?>) null)).isNull();
+	}
+
+	@Test
+	public void toRegionNameWithStringIsCorrect() {
+
+		assertThat(RegionUtils.toRegionName("A")).isEqualTo("A");
+		assertThat(RegionUtils.toRegionName("/A")).isEqualTo("A");
+		assertThat(RegionUtils.toRegionName("/A/B")).isEqualTo("B");
+		assertThat(RegionUtils.toRegionName("/A/B/C")).isEqualTo("C");
+		assertThat(RegionUtils.toRegionName("A/B/C")).isEqualTo("C");
+		assertThat(RegionUtils.toRegionName("AB/C")).isEqualTo("C");
+		assertThat(RegionUtils.toRegionName("AB/C/")).isEqualTo("");
+		assertThat(RegionUtils.toRegionName("null")).isEqualTo("null");
+		assertThat(RegionUtils.toRegionName("  ")).isEqualTo("  ");
+		assertThat(RegionUtils.toRegionName("")).isEqualTo("");
+	}
+
+	@Test
+	public void toRegionNameWithNullStringIsCorrect() {
+		assertThat(RegionUtils.toRegionName((String) null)).isNull();
+	}
+
+	@Test
+	public void toRegionPathWithRegionHavingPathIsCorrect() {
+
+		Region<?, ?> mockRegion = mock(Region.class);
+
+		doReturn("/A/B/C").when(mockRegion).getFullPath();
+
+		assertThat(RegionUtils.toRegionPath(mockRegion)).isEqualTo("/A/B/C");
+
+		verify(mockRegion, times(1)).getFullPath();
+	}
+
+	@Test
+	public void toRegionPathWithRegionHavingNoPathIsCorrect() {
+
+		Region<?, ?> mockRegion = mock(Region.class);
+
+		doReturn(null).when(mockRegion).getFullPath();
+
+		assertThat(RegionUtils.toRegionPath(mockRegion)).isNull();
+
+		verify(mockRegion, times(1)).getFullPath();
+	}
+
+	@Test
+	public void toRegionPathWithRegionNotBeginningWithRegionSeparatorIsCorrect() {
+
+		Region<?, ?> mockRegion = mock(Region.class);
+
+		doReturn("A/B").when(mockRegion).getFullPath();
+
+		assertThat(RegionUtils.toRegionPath(mockRegion)).isEqualTo("/A/B");
+
+		verify(mockRegion, times(1)).getFullPath();
+	}
+
+	@Test
+	public void toRegionPathWithNullRegionIsNullSafe() {
+		assertThat(RegionUtils.toRegionPath((Region<?, ?>) null)).isNull();
+	}
+
+	@Test
+	public void toRegionPathWithStringIsCorrect() {
+
+		assertThat(RegionUtils.toRegionPath("/A")).isEqualTo("/A");
+		assertThat(RegionUtils.toRegionPath("A/B")).isEqualTo("/A/B");
+		assertThat(RegionUtils.toRegionPath("/A/B/C")).isEqualTo("/A/B/C");
+		assertThat(RegionUtils.toRegionPath("A")).isEqualTo("/A");
+		assertThat(RegionUtils.toRegionPath((String) null)).isEqualTo("/null");
 	}
 }

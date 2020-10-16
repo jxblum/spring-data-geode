@@ -69,10 +69,15 @@ public class QueryString {
 	protected static final String TRACE_OQL_TEMPLATE = "<TRACE> %1$s";
 
 	// OQL Query Regular Expression Patterns
+	protected static final String COMMA_DELIMITER = ",";
+	protected static final String COMMA_SPACE_DELIMITER = ", ";
 	protected static final String COUNT_PROJECTION = "count(*)";
+	protected static final String EMPTY_STRING = "";
 	protected static final String IN_PATTERN = "(?<=IN (SET|LIST) )\\$\\d";
 	protected static final String IN_PARAMETER_PATTERN = "(?<=IN (SET|LIST) \\$)\\d";
 	protected static final String REGION_PATTERN = "\\/(\\/?\\w)+";
+	protected static final String SINGLE_QUOTE = "'";
+	protected static final String SINGLE_SPACE = " ";
 	protected static final String STAR_PROJECTION = "*";
 
 	/**
@@ -302,7 +307,7 @@ public class QueryString {
 	public QueryString adjustLimit(@Nullable Integer limit) {
 
 		return limit != null
-			? QueryString.of(LIMIT_PATTERN.matcher(getQuery()).replaceAll("").trim()).withLimit(limit)
+			? QueryString.of(LIMIT_PATTERN.matcher(getQuery()).replaceAll(EMPTY_STRING).trim()).withLimit(limit)
 			: this;
 	}
 
@@ -345,7 +350,7 @@ public class QueryString {
 
 		if (!CollectionUtils.nullSafeIsEmpty(values)) {
 			return QueryString.of(getQuery().replaceFirst(IN_PATTERN, String.format("(%s)",
-				StringUtils.collectionToDelimitedString(values, ", ", "'", "'"))));
+				StringUtils.collectionToDelimitedString(values, COMMA_SPACE_DELIMITER, SINGLE_QUOTE, SINGLE_QUOTE))));
 		}
 
 		return this;
@@ -388,12 +393,14 @@ public class QueryString {
 
 		if (hasSort(sort)) {
 
-			StringBuilder orderByClause = new StringBuilder("ORDER BY ");
+			StringBuilder orderByClause = new StringBuilder(OqlKeyword.ORDER_BY.getKeyword());
+
+			orderByClause.append(SINGLE_SPACE);
 
 			int count = 0;
 
 			for (Sort.Order order : sort) {
-				orderByClause.append(count++ > 0 ? ", " : "");
+				orderByClause.append(count++ > 0 ? COMMA_SPACE_DELIMITER : EMPTY_STRING);
 				orderByClause.append(String.format("%1$s %2$s", order.getProperty(), order.getDirection()));
 			}
 

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.gemfire.GemfireTemplate;
 import org.springframework.data.repository.query.ParametersParameterAccessor;
@@ -134,7 +135,7 @@ public class PartTreeGemfireRepositoryQuery extends GemfireRepositoryQuery {
 		List<Object> stringParameters = new ArrayList<>(parameters.length);
 
 		for (Object parameter : parameters) {
-			if (parameter == null || parameter instanceof Sort) {
+			if (acceptParameterAsIs(parameter)) {
 				stringParameters.add(parameter);
 			}
 			else {
@@ -155,5 +156,9 @@ public class PartTreeGemfireRepositoryQuery extends GemfireRepositoryQuery {
 		}
 
 		return stringParameters.toArray();
+	}
+
+	private boolean acceptParameterAsIs(Object parameter) {
+		return parameter == null || parameter instanceof Pageable || parameter instanceof Sort;
 	}
 }

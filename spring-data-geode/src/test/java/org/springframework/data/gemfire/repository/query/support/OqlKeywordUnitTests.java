@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2020 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,37 +12,27 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
-
-package org.springframework.data.gemfire.repository;
+package org.springframework.data.gemfire.repository.query.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.assertj.core.api.Assertions.fail;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
-import org.springframework.data.gemfire.repository.query.support.OqlKeyword;
 
 /**
- * Test suite of test cases testing the contract and functionality
- * of the {@link OqlKeyword} enumerated type.
+ * Unit Tests for {@link OqlKeyword}.
  *
  * @author John Blum
  * @see org.junit.Test
  * @see org.springframework.data.gemfire.repository.query.support.OqlKeyword
- * @since 1.0.0
+ * @since 1.9.0
  */
 public class OqlKeywordUnitTests {
 
-	@Rule
-	public ExpectedException exception = ExpectedException.none();
-
 	@Test
 	public void valueOfIgnoreCaseWithEnumeratedValuesIsSuccessful() {
+
 		for (OqlKeyword oqlKeyword : OqlKeyword.values()) {
 			assertThat(OqlKeyword.valueOfIgnoreCase(oqlKeyword.getKeyword())).isEqualTo(oqlKeyword);
 		}
@@ -50,6 +40,7 @@ public class OqlKeywordUnitTests {
 
 	@Test
 	public void valueOfIgnoreCaseWithUnconventionalValuesIsSuccessful() {
+
 		assertThat(OqlKeyword.valueOfIgnoreCase("and")).isEqualTo(OqlKeyword.AND);
 		assertThat(OqlKeyword.valueOfIgnoreCase("As")).isEqualTo(OqlKeyword.AS);
 		assertThat(OqlKeyword.valueOfIgnoreCase("CoUnT")).isEqualTo(OqlKeyword.COUNT);
@@ -59,6 +50,7 @@ public class OqlKeywordUnitTests {
 
 	@Test
 	public void valueOfIgnoreCaseWithIllegalValuesThrowsIllegalArgumentException() {
+
 		assertIllegalOqlKeyword("AN");
 		assertIllegalOqlKeyword("ASS");
 		assertIllegalOqlKeyword("CNT");
@@ -82,15 +74,42 @@ public class OqlKeywordUnitTests {
 	}
 
 	protected void assertIllegalOqlKeyword(String keyword) {
-		exception.expect(IllegalArgumentException.class);
-		exception.expectCause(is(nullValue(Throwable.class)));
-		exception.expectMessage(String.format("[%s] is not a valid GemFire OQL Keyword", keyword));
 
-		OqlKeyword.valueOfIgnoreCase(keyword);
+		try {
+			OqlKeyword.valueOfIgnoreCase(keyword);
+			fail("Expected an IllegalArgumentException for invalid OQL keyword [%s]!", keyword);
+		}
+		catch (IllegalArgumentException expected) {
+
+			assertThat(expected).hasMessage("[%s] is not a valid OQL Keyword", keyword);
+			assertThat(expected).hasNoCause();
+		}
+	}
+
+	@Test
+	public void isKeywordForValidKeywordReturnsTrue() {
+
+		assertThat(OqlKeyword.isKeyword("SELECT")).isTrue();
+		assertThat(OqlKeyword.isKeyword("Select")).isTrue();
+		assertThat(OqlKeyword.isKeyword("select")).isTrue();
+		assertThat(OqlKeyword.isKeyword("WHeRe")).isTrue();
+		assertThat(OqlKeyword.isKeyword("Order By")).isTrue();
+	}
+
+	@Test
+	public void isKeywordForInvalidKeywordReturnsFalse() {
+
+		assertThat(OqlKeyword.isKeyword("ASCENDING")).isFalse();
+		assertThat(OqlKeyword.isKeyword("Extinct")).isFalse();
+		assertThat(OqlKeyword.isKeyword("TO")).isFalse();
+		assertThat(OqlKeyword.isKeyword("WHEN")).isFalse();
+		assertThat(OqlKeyword.isKeyword("DISORDER")).isFalse();
+		assertThat(OqlKeyword.isKeyword("UNLIMITED")).isFalse();
 	}
 
 	@Test
 	public void getKeywordEqualsNameExceptForOrderBy() {
+
 		for (OqlKeyword oqlKeyword : OqlKeyword.values()) {
 			if (!OqlKeyword.ORDER_BY.equals(oqlKeyword)) {
 				assertThat(oqlKeyword.getKeyword()).isEqualTo(oqlKeyword.name());
